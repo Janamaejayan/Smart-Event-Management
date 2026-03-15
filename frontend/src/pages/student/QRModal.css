@@ -1,0 +1,129 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  transition: all var(--transition);
+}
+
+.modal-close:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
+
+.modal-body {
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* QR Grid */
+.qr-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.qr-grid {
+  display: grid;
+  gap: 2px;
+  width: 180px;
+  height: 180px;
+  padding: 12px;
+  background: white;
+  border-radius: var(--radius-md);
+}
+
+.qr-cell {
+  background: white;
+  border-radius: 1px;
+}
+
+.qr-cell.qr-filled {
+  background: #1a1a2e;
+}
+
+.qr-code-text {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  word-break: break-all;
+  text-align: center;
+  max-width: 200px;
+}
+
+.modal-event-info {
+  text-align: center;
+  width: 100%;
+}
+
+.modal-event-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.modal-meta {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.modal-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.qr-hint {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
