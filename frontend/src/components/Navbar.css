@@ -5,6 +5,12 @@
   background: rgba(10, 15, 26, 0.85);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+[data-theme="light"] .navbar {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 12px rgba(88, 71, 217, 0.08);
 }
 
 .navbar-inner {
@@ -195,4 +201,35 @@
   .hide-mobile {
     display: none;
   }
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  display: flex;
+  font-size: 1.1rem;
+}
+
+[data-theme="light"] .theme-toggle {
+  color: #475569;
+}
+
+.theme-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.2);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  color: #5847d9;
+  border-color: #5847d9;
+  box-shadow: 0 0 8px rgba(88, 71, 217, 0.25);
 }

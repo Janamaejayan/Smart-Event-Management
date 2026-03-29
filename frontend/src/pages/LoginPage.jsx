@@ -34,60 +34,62 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-glow" />
-      <div className="auth-card card card-elevated fade-in">
-        <div className="auth-header">
-          <div className="auth-logo">⚡</div>
-          <h1 className="auth-title">Welcome back</h1>
-          <p className="auth-subtitle">Sign in to EventSphere</p>
-        </div>
-
-        <div className="demo-hint">
-          <strong>Demo accounts:</strong><br />
-          <span>🎓 Student: <code>student@demo.com</code></span><br />
-          <span>🗂 Organizer: <code>organizer@demo.com</code></span><br />
-          <span>🔑 Password: <code>demo123</code></span>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="form-group">
-            <label className="form-label">Email address</label>
-            <input
-              type="email"
-              className="form-input"
-              placeholder="you@example.com"
-              {...register('email', {
-                required: 'Email is required',
-                pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' },
-              })}
-            />
-            {errors.email && <span className="form-error">{errors.email.message}</span>}
+      <div className="auth-container">
+        <div className="auth-card card card-elevated fade-in">
+          <div className="auth-header">
+            <div className="auth-logo">⚡</div>
+            <h1 className="auth-title">Welcome back</h1>
+            <p className="auth-subtitle">Sign in to EventSphere</p>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <div className="input-icon-wrap">
+          <div className="demo-hint">
+            <strong>Demo accounts:</strong><br />
+            <span>🎓 Student: <code>student@demo.com</code></span><br />
+            <span>🗂 Organizer: <code>organizer@demo.com</code></span><br />
+            <span>🔑 Password: <code>demo123</code></span>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <div className="form-group">
+              <label className="form-label">Email address</label>
               <input
-                type={showPass ? 'text' : 'password'}
+                type="email"
                 className="form-input"
-                placeholder="••••••••"
-                {...register('password', { required: 'Password is required' })}
+                placeholder="you@example.com"
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' },
+                })}
               />
-              <button type="button" className="input-icon-btn" onClick={() => setShowPass(!showPass)}>
-                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+              {errors.email && <span className="form-error">{errors.email.message}</span>}
             </div>
-            {errors.password && <span className="form-error">{errors.password.message}</span>}
-          </div>
 
-          <button type="submit" className="btn btn-primary btn-full btn-lg mt-2" disabled={loading}>
-            {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : <LogIn size={18} />}
-            {loading ? 'Signing in…' : 'Sign In'}
-          </button>
-        </form>
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <div className="input-icon-wrap">
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  className="form-input"
+                  placeholder="••••••••"
+                  {...register('password', { required: 'Password is required' })}
+                />
+                <button type="button" className="input-icon-btn" onClick={() => setShowPass(!showPass)}>
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {errors.password && <span className="form-error">{errors.password.message}</span>}
+            </div>
 
-        <p className="auth-footer">
-          Don't have an account? <Link to="/register">Create one →</Link>
-        </p>
+            <button type="submit" className="btn btn-primary btn-full btn-lg mt-2" disabled={loading}>
+              {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : <LogIn size={18} />}
+              {loading ? 'Signing in…' : 'Sign In'}
+            </button>
+          </form>
+
+          <p className="auth-footer">
+            Don't have an account? <Link to="/register">Create one →</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

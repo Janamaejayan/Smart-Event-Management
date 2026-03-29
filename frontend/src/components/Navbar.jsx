@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   CalendarDays, LayoutDashboard, PlusCircle, ClipboardList,
-  LogOut, Menu, X, Ticket, QrCode,
+  LogOut, Menu, X, Ticket, QrCode, Moon, Sun,
 } from 'lucide-react';
 import { useState } from 'react';
 import './Navbar.css';
@@ -21,6 +22,7 @@ const NAV_LINKS = {
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -60,6 +62,9 @@ export default function Navbar() {
 
         {/* Right side */}
         <div className="navbar-right">
+          <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           {user ? (
             <>
               <div className="user-pill">
