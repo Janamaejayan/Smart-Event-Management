@@ -138,8 +138,6 @@ export default function EventDetailPage() {
       <div className="event-detail-layout">
         {/* Left — Event info */}
         <div className="event-info-col">
-          <div className="event-detail-banner" style={{ background: event.bannerColor }} />
-
           <div className="event-info-card card">
             <div className="event-tags" style={{ marginBottom: '0.75rem' }}>
               {event.tags?.map((t) => <span key={t} className="badge badge-accent">{t}</span>)}
@@ -157,7 +155,12 @@ export default function EventDetailPage() {
                 <Calendar size={18} />
                 <div>
                   <span className="meta-label">Date & Time</span>
-                  <span className="meta-value">{formatDate(event.date)} at {event.time}</span>
+                  <span className="meta-value">Starts: {formatDate(event.date)} at {event.time}</span>
+                  {(event.endDate && event.endTime) && (
+                    <span className="meta-value" style={{ display: 'block', color: 'var(--text-secondary)' }}>
+                      Ends: {formatDate(event.endDate)} at {event.endTime}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="meta-item">
@@ -180,46 +183,95 @@ export default function EventDetailPage() {
 
         {/* Right — Registration */}
         <div className="event-reg-col">
-          {alreadyRegistered || success ? (
-            <div className="card registered-card">
-              <CheckCircle size={40} style={{ color: 'var(--success)', marginBottom: '0.75rem' }} />
-              <h3>You're registered!</h3>
-              <p>Check your registrations page to see your QR code and event details.</p>
-              <Link to="/student/my-registrations" className="btn btn-primary btn-full mt-2">
-                View My Registrations
-              </Link>
-            </div>
-          ) : isFull ? (
-            <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
-              <h3 style={{ color: 'var(--danger)' }}>Event Full</h3>
-              <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>No more spots available.</p>
-            </div>
-          ) : (
-            <div className="card">
-              <h2 className="reg-form-title">Register for this event</h2>
-              {event.isPaid && (
-                <div className="alert alert-warning mb-2">
-                  <CreditCard size={16} />
-                  <div>
-                    <strong>Paid event — ₹{event.price}</strong><br />
-                    <span style={{ fontSize: '0.8rem' }}>Payment gateway integration coming soon. Registration confirmed automatically for now.</span>
-                  </div>
+          {(() => {
+            const now = new Date();
+            let isRegistrationClosed = false;
+            let isEventFinished = false;
+
+            if (event.deadlineDate && event.deadlineTime) {
+              const dl = new Date(`${event.deadlineDate}T${event.deadlineTime}`);
+              if (now > dl) isRegistrationClosed = true;
+            }
+            if (event.endDate && event.endTime) {
+              const ed = new Date(`${event.endDate}T${event.endTime}`);
+              if (now > ed) {
+                isEventFinished = true;
+                isRegistrationClosed = true;
+              }
+            }
+
+            if (alreadyRegistered || success) {
+              return (
+                <div className="card registered-card">
+                  <CheckCircle size={40} style={{ color: 'var(--success)', marginBottom: '0.75rem' }} />
+                  <h3>You're registered!</h3>
+                  <p>Check your registrations page to see your QR code and event details.</p>
+                  <Link to="/student/my-registrations" className="btn btn-primary btn-full mt-2">
+                    View My Registrations
+                  </Link>
                 </div>
-              )}
-              <form onSubmit={handleSubmit} noValidate>
-                {(event.customFields || []).map(renderField)}
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-full btn-lg mt-2"
-                  disabled={submitting}
-                >
-                  {submitting
-                    ? <><Loader2 size={18} className="spin-icon" /> Registering…</>
-                    : 'Complete Registration'}
-                </button>
-              </form>
-            </div>
-          )}
+              );
+            }
+
+            if (isEventFinished) {
+              return (
+                <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+                  <h3 style={{ color: 'var(--text-muted)' }}>Event Finished</h3>
+                  <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>This event has already concluded.</p>
+                </div>
+              );
+            }
+
+            if (isRegistrationClosed) {
+              return (
+                <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+                  <h3 style={{ color: 'var(--warning)' }}>Registration Closed</h3>
+                  <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>The deadline to register for this event has passed.</p>
+                </div>
+              );
+            }
+
+            if (isFull) {
+              return (
+                <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
+                  <h3 style={{ color: 'var(--danger)' }}>Event Full</h3>
+                  <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>No more spots available.</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="card">
+                <h2 className="reg-form-title">Register for this event</h2>
+                {event.deadlineDate && event.deadlineTime && (
+                  <p style={{ fontSize: '0.8rem', color: 'var(--warning)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
+                    ⚠️ Deadline: {formatDate(event.deadlineDate)} at {event.deadlineTime}
+                  </p>
+                )}
+                {event.isPaid && (
+                  <div className="alert alert-warning mb-2">
+                    <CreditCard size={16} />
+                    <div>
+                      <strong>Paid event — ₹{event.price}</strong><br />
+                      <span style={{ fontSize: '0.8rem' }}>Payment gateway integration coming soon. Registration confirmed automatically for now.</span>
+                    </div>
+                  </div>
+                )}
+                <form onSubmit={handleSubmit} noValidate>
+                  {(event.customFields || []).map(renderField)}
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-full btn-lg mt-2"
+                    disabled={submitting}
+                  >
+                    {submitting
+                      ? <><Loader2 size={18} className="spin-icon" /> Registering…</>
+                      : 'Complete Registration'}
+                  </button>
+                </form>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

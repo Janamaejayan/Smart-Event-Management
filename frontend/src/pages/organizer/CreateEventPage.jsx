@@ -17,14 +17,7 @@ const FIELD_TYPES = [
   { value: 'checkbox', label: 'Checkbox', icon: <CheckSquare size={16} /> },
 ];
 
-const BANNER_GRADIENTS = [
-  'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-  'linear-gradient(135deg, #10b981, #3b82f6)',
-  'linear-gradient(135deg, #f59e0b, #ef4444)',
-  'linear-gradient(135deg, #ec4899, #8b5cf6)',
-  'linear-gradient(135deg, #6366f1, #8b5cf6)',
-  'linear-gradient(135deg, #14b8a6, #3b82f6)',
-];
+// Banner colors removed
 
 export default function CreateEventPage() {
   const { user } = useAuth();
@@ -35,13 +28,15 @@ export default function CreateEventPage() {
 
   const [info, setInfo] = useState({
     title: '', description: '', date: '', time: '',
-    venue: '', capacity: 100, bannerColor: BANNER_GRADIENTS[0], tags: '',
+    endDate: '', endTime: '', deadlineDate: '', deadlineTime: '',
+    venue: '', capacity: 100, tags: '',
+    isPaid: false,
+    price: '',
+    resources: [], // Array of { title: '', url: '' }
   });
 
   const [fields, setFields] = useState([]);
   const [newField, setNewField] = useState({ label: '', type: 'text', options: '', required: false });
-
-  const [settings, setSettings] = useState({ isPaid: false, price: 0 });
 
   // ── Step renderers (called as functions, NOT as <Components />, to prevent
   //    React unmounting inputs on every re-render which causes focus loss) ──
@@ -58,12 +53,28 @@ export default function CreateEventPage() {
           <textarea className="form-textarea" value={info.description} onChange={(e) => setInfo({ ...info, description: e.target.value })} placeholder="Describe your event…" />
         </div>
         <div className="form-group">
-          <label className="form-label">Date *</label>
+          <label className="form-label">Start Date *</label>
           <input type="date" className="form-input" value={info.date} onChange={(e) => setInfo({ ...info, date: e.target.value })} />
         </div>
         <div className="form-group">
-          <label className="form-label">Time *</label>
+          <label className="form-label">Start Time *</label>
           <input type="time" className="form-input" value={info.time} onChange={(e) => setInfo({ ...info, time: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">End Date *</label>
+          <input type="date" className="form-input" value={info.endDate} onChange={(e) => setInfo({ ...info, endDate: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">End Time *</label>
+          <input type="time" className="form-input" value={info.endTime} onChange={(e) => setInfo({ ...info, endTime: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Registration Deadline Date *</label>
+          <input type="date" className="form-input" value={info.deadlineDate} onChange={(e) => setInfo({ ...info, deadlineDate: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Registration Deadline Time *</label>
+          <input type="time" className="form-input" value={info.deadlineTime} onChange={(e) => setInfo({ ...info, deadlineTime: e.target.value })} />
         </div>
         <div className="form-group">
           <label className="form-label">Venue *</label>
@@ -76,20 +87,6 @@ export default function CreateEventPage() {
         <div className="form-group" style={{ gridColumn: '1 / -1' }}>
           <label className="form-label">Tags (comma-separated)</label>
           <input className="form-input" value={info.tags} onChange={(e) => setInfo({ ...info, tags: e.target.value })} placeholder="Technology, Networking, Hackathon" />
-        </div>
-        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-          <label className="form-label">Banner Colour</label>
-          <div className="banner-picker">
-            {BANNER_GRADIENTS.map((g) => (
-              <button
-                key={g}
-                type="button"
-                className={`banner-swatch ${info.bannerColor === g ? 'selected' : ''}`}
-                style={{ background: g }}
-                onClick={() => setInfo({ ...info, bannerColor: g })}
-              />
-            ))}
-          </div>
         </div>
       </div>
     </div>
@@ -171,8 +168,24 @@ export default function CreateEventPage() {
   );
 
   // ── Step 3: Settings ──
+  const addResource = () => {
+    setInfo((prev) => ({ ...prev, resources: [...prev.resources, { title: '', url: '' }] }));
+  };
+
+  const removeResource = (index) => {
+    setInfo((prev) => ({ ...prev, resources: prev.resources.filter((_, i) => i !== index) }));
+  };
+
+  const updateResource = (index, field, value) => {
+    setInfo((prev) => {
+      const updated = [...prev.resources];
+      updated[index][field] = value;
+      return { ...prev, resources: updated };
+    });
+  };
+
   const renderSettingsStep = () => (
-    <div>
+    <div className="fade-in">
       <div className="settings-section">
         <div className="settings-row card">
           <div>
@@ -180,46 +193,61 @@ export default function CreateEventPage() {
             <p>Enable ticket pricing for this event</p>
           </div>
           <label className="switch">
-            <input type="checkbox" checked={settings.isPaid} onChange={(e) => setSettings({ ...settings, isPaid: e.target.checked })} />
+            <input type="checkbox" checked={info.isPaid} onChange={(e) => setInfo({ ...info, isPaid: e.target.checked })} />
             <span className="switch-track" />
           </label>
         </div>
 
-        {settings.isPaid && (
+        {info.isPaid && (
           <div className="payment-placeholder card fade-in">
             <div className="payment-placeholder-icon"><IndianRupee size={28} /></div>
             <h4>Payment Gateway</h4>
             <p>Set the ticket price below. Payment integration (Razorpay / Stripe) will be added in a future update.</p>
             <div className="form-group mt-2" style={{ maxWidth: 200 }}>
               <label className="form-label">Ticket Price (₹)</label>
-              <input type="number" className="form-input" value={settings.price} min={0} onChange={(e) => setSettings({ ...settings, price: parseInt(e.target.value) || 0 })} />
+              <input type="number" className="form-input" value={info.price} min={0} onChange={(e) => setInfo({ ...info, price: parseInt(e.target.value) || 0 })} />
             </div>
             <div className="alert alert-info mt-2">
               <span>💡 For now, registrations will be confirmed automatically regardless of payment.</span>
             </div>
           </div>
         )}
+
+        <div className="settings-row card mt-2">
+          <div>
+            <h4>Resources</h4>
+            <p>Add links or documents for attendees</p>
+          </div>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={addResource}><Plus size={14} /> Add</button>
+        </div>
+        {info.resources.map((r, i) => (
+          <div key={i} className="card mt-1" style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem' }}>
+            <input className="form-input" placeholder="Title" value={r.title} onChange={(e) => updateResource(i, 'title', e.target.value)} />
+            <input className="form-input" placeholder="URL" value={r.url} onChange={(e) => updateResource(i, 'url', e.target.value)} />
+            <button type="button" className="btn btn-danger btn-sm" onClick={() => removeResource(i)}><Trash2 size={14} /></button>
+          </div>
+        ))}
       </div>
     </div>
   );
 
-  // ── Step 4: Preview ──
   const renderPreviewStep = () => (
     <div>
-      <div className="preview-banner" style={{ background: info.bannerColor }} />
       <div className="card mt-2" style={{ padding: '1.5rem' }}>
         <div className="event-tags mb-1">
           {info.tags.split(',').filter(Boolean).map((t) => (
             <span key={t} className="badge badge-accent">{t.trim()}</span>
           ))}
-          {settings.isPaid
-            ? <span className="badge badge-warning">₹{settings.price}</span>
+          {info.isPaid
+            ? <span className="badge badge-warning">₹{info.price}</span>
             : <span className="badge badge-success">Free</span>}
         </div>
         <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>{info.title || '(No title)'}</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.6' }}>{info.description}</p>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-          <span>📅 {info.date} {info.time}</span>
+          <span>⏳ Starts: {info.date} {info.time}</span>
+          <span>🏁 Ends: {info.endDate} {info.endTime}</span>
+          <span>⚠️ Deadline: {info.deadlineDate} {info.deadlineTime}</span>
           <span>📍 {info.venue}</span>
           <span>👥 Capacity: {info.capacity}</span>
         </div>
@@ -237,6 +265,16 @@ export default function CreateEventPage() {
             </div>
           </>
         )}
+        {info.resources.length > 0 && info.resources.some(r => r.title && r.url) && (
+          <div style={{ marginTop: '1.5rem', background: 'var(--bg-lighter)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+            <h4 style={{ marginBottom: '0.5rem', color: 'var(--text-color)', fontSize: '0.95rem' }}>Attached Resources ({info.resources.filter(r => r.title && r.url).length})</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              {info.resources.filter(r => r.title && r.url).map((r, i) => (
+                <li key={i} style={{ marginBottom: '0.25rem' }}>📄 {r.title}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -245,7 +283,7 @@ export default function CreateEventPage() {
   const renderStep = () => [renderInfoStep, renderFieldsStep, renderSettingsStep, renderPreviewStep][step]();
 
   const canNext = () => {
-    if (step === 0) return info.title && info.description && info.date && info.time && info.venue && info.capacity;
+    if (step === 0) return info.title && info.description && info.date && info.time && info.endDate && info.endTime && info.deadlineDate && info.deadlineTime && info.venue && info.capacity;
     return true;
   };
 
@@ -253,14 +291,15 @@ export default function CreateEventPage() {
     setSubmitting(true);
     try {
       const tags = info.tags.split(',').map((t) => t.trim()).filter(Boolean);
-      await createEvent({
+      const eventData = {
         ...info,
         tags,
         customFields: fields,
-        ...settings,
         capacity: Number(info.capacity),
-        price: Number(settings.price),
-      });
+        price: Number(info.price),
+        resources: info.resources.filter(r => r.title.trim() && r.url.trim()),
+      };
+      await createEvent(eventData);
       addToast('Event created successfully! 🎉', 'success');
       navigate('/organizer/events');
     } catch (err) {

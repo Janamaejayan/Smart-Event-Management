@@ -129,4 +129,41 @@ router.post('/checkin', protect, requireRole('organizer'), async (req, res, next
   }
 });
 
+// ─── POST /api/attendance/self-checkin  (student – self check-in via code) ─────
+router.post('/self-checkin', protect, requireRole('student'), async (req, res, next) => {
+  try {
+    const { eventId, code } = req.body;
+    
+    if (!eventId || !code) {
+      return res.status(400).json({ success: false, message: 'Event ID and attendance code are required' });
+    }
+
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+
+    if (!event.attendanceCode || event.attendanceCode !== code.trim().toUpperCase()) {
+      return res.status(400).json({ success: false, message: 'Invalid attendance code' });
+    }
+
+    // Check if the student is registered
+    const record = await Attendance.findOne({ eventId, studentId: req.user._id });
+    if (!record) {
+      return res.status(403).json({ success: false, message: 'You are not registered for this event' });
+    }
+
+    if (record.present) {
+      return res.status(400).json({ success: false, message: 'You are already marked as present!' });
+    }
+
+    // Update attendance
+    record.present = true;
+    record.checkedInAt = new Date();
+    await record.save();
+
+    res.json({ success: true, message: 'Self check-in successful!' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

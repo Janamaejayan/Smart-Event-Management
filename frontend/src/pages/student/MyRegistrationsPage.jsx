@@ -1,19 +1,17 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getMyRegistrations } from '../../services/api';
-import { Calendar, MapPin, QrCode, CheckCircle, Clock } from 'lucide-react';
-import QRModal from './QRModal';
+import { Calendar, MapPin, CheckCircle, Clock } from 'lucide-react';
 import './MyRegistrationsPage.css';
 
 export default function MyRegistrationsPage() {
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedQR, setSelectedQR] = useState(null);
 
   useEffect(() => {
     getMyRegistrations().then((res) => {
-      // The backend populates eventId as the full event document
       const regs = res.data.map((r) => ({ ...r, event: r.eventId }));
       setRegistrations(regs);
       setLoading(false);
@@ -48,10 +46,9 @@ export default function MyRegistrationsPage() {
         <div className="reg-list">
           {registrations.map((reg) => (
             <div key={reg.id} className="reg-card card fade-in">
-              {/* Banner strip */}
               <div
                 className="reg-banner-strip"
-                style={{ background: reg.event?.bannerColor || 'var(--accent)' }}
+                style={{ background: 'var(--accent)' }}
               />
 
               <div className="reg-card-body">
@@ -70,16 +67,17 @@ export default function MyRegistrationsPage() {
                       {reg.status === 'confirmed' && <CheckCircle size={11} />}
                       {reg.status}
                     </span>
-                    <button
-                      className="btn btn-secondary btn-sm qr-btn"
-                      onClick={() => setSelectedQR(reg)}
+                    
+                    <Link
+                      to={`/student/workspace/${reg._id || reg.id}`}
+                      className="btn btn-primary btn-sm"
+                      style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center' }}
                     >
-                      <QrCode size={15} /> My QR Code
-                    </button>
+                      Enter Event Workspace
+                    </Link>
                   </div>
                 </div>
 
-                {/* Custom field answers */}
                 {reg.formData && Object.keys(reg.formData).length > 0 && (
                   <div className="form-data-section">
                     <p className="form-data-label">Registration details</p>
@@ -97,10 +95,6 @@ export default function MyRegistrationsPage() {
             </div>
           ))}
         </div>
-      )}
-
-      {selectedQR && (
-        <QRModal registration={selectedQR} onClose={() => setSelectedQR(null)} />
       )}
     </div>
   );

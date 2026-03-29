@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getMyOrgEvents } from '../../services/api';
 import {
   LayoutDashboard, CalendarDays, Users, TrendingUp,
-  PlusCircle, ClipboardList, ArrowRight,
+  PlusCircle, ClipboardList, ArrowRight, BarChart2,
 } from 'lucide-react';
 import EventCard from '../../components/EventCard';
 import './OrganizerDashboard.css';
@@ -34,6 +34,7 @@ export default function OrganizerDashboard() {
   const quickActions = [
     { to: '/organizer/create-event', label: 'Create New Event', icon: <PlusCircle size={18} />, cls: 'btn-primary' },
     { to: '/organizer/events', label: 'Manage Events', icon: <ClipboardList size={18} />, cls: 'btn-secondary' },
+    { to: '/organizer/analytics', label: 'Analytics', icon: <BarChart2 size={18} />, cls: 'btn-secondary' },
   ];
 
   return (

@@ -215,6 +215,16 @@ export default function EventAttendeesPage() {
         </button>
       </div>
 
+      {event?.attendanceCode && (
+        <div className="card" style={{ marginBottom: '1.5rem', textAlign: 'center', padding: '2rem', background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+          <h3 style={{ color: 'var(--text-muted)' }}>Student Self Check-In Code</h3>
+          <p style={{ fontSize: '0.9rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Share this code with students so they can mark their own attendance.</p>
+          <div style={{ fontSize: '4rem', fontWeight: 800, letterSpacing: '0.75rem', color: 'var(--accent)', fontFamily: 'monospace', textShadow: '0 0 20px rgba(139,92,246,0.4)' }}>
+            {event.attendanceCode}
+          </div>
+        </div>
+      )}
+
       {/* Stats row */}
       <div className="attendance-stats">
         <div className="att-stat">

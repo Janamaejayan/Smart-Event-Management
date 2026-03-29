@@ -19,6 +19,11 @@ import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import CreateEventPage from './pages/organizer/CreateEventPage';
 import ManageEventsPage from './pages/organizer/ManageEventsPage';
 import EventAttendeesPage from './pages/organizer/EventAttendeesPage';
+import EventAnalyticsPage from './pages/organizer/EventAnalyticsPage';
+import EventFeedbackPage from './pages/organizer/EventFeedbackPage';
+
+// Student Event Workspace
+import StudentEventWorkspace from './pages/student/StudentEventWorkspace';
 
 export default function App() {
   return (
@@ -42,6 +47,9 @@ export default function App() {
             <Route path="/student/my-registrations" element={
               <ProtectedRoute role="student"><MyRegistrationsPage /></ProtectedRoute>
             } />
+            <Route path="/student/workspace/:id" element={
+              <ProtectedRoute role="student"><StudentEventWorkspace /></ProtectedRoute>
+            } />
 
             {/* Organizer — also let organizer view event detail */}
             <Route path="/organizer/dashboard" element={
@@ -55,6 +63,15 @@ export default function App() {
             } />
             <Route path="/organizer/event/:id/attendees" element={
               <ProtectedRoute role="organizer"><EventAttendeesPage /></ProtectedRoute>
+            } />
+            <Route path="/organizer/event/:id/analytics" element={
+              <ProtectedRoute role="organizer"><EventAnalyticsPage /></ProtectedRoute>
+            } />
+            <Route path="/organizer/event/:id/feedback" element={
+              <ProtectedRoute role="organizer"><EventFeedbackPage /></ProtectedRoute>
+            } />
+            <Route path="/organizer/analytics" element={
+              <ProtectedRoute role="organizer"><EventAnalyticsPage overview /></ProtectedRoute>
             } />
             {/* Organizer event detail (read-only card for nav from dashboard) */}
             <Route path="/organizer/event/:id" element={

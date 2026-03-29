@@ -1,5 +1,80 @@
 .events-grid-org {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* ── Custom Stat Cards for Dashboard ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.25rem;
+  margin: 1.5rem 0 3rem;
+}
+
+.stat-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  transition: all 0.4s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 30px -10px rgba(0,0,0,0.5);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-icon.purple { 
+  background: rgba(139, 92, 246, 0.15); 
+  color: #a78bfa; 
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+.stat-icon.blue { 
+  background: rgba(59, 130, 246, 0.15); 
+  color: #60a5fa; 
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+.stat-icon.green { 
+  background: rgba(16, 185, 129, 0.15); 
+  color: #34d399; 
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 0.2rem;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }

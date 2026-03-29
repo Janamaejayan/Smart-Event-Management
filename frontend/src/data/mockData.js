@@ -32,7 +32,6 @@ export const mockEvents = [
     venue: 'Main Auditorium, Block A',
     capacity: 200,
     registered: 142,
-    bannerColor: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
     tags: ['Technology', 'Networking'],
     isPaid: false,
     price: 0,
@@ -54,7 +53,6 @@ export const mockEvents = [
     venue: 'Innovation Lab, Block C',
     capacity: 120,
     registered: 89,
-    bannerColor: 'linear-gradient(135deg, #10b981, #3b82f6)',
     tags: ['Hackathon', 'Coding'],
     isPaid: true,
     price: 150,
@@ -76,7 +74,6 @@ export const mockEvents = [
     venue: 'Open Air Theatre',
     capacity: 500,
     registered: 310,
-    bannerColor: 'linear-gradient(135deg, #f59e0b, #ef4444)',
     tags: ['Cultural', 'Entertainment'],
     isPaid: true,
     price: 80,
@@ -159,7 +156,6 @@ export const apiCreateEvent = async (eventData) => {
     ...eventData,
     registered: 0,
     status: 'published',
-    bannerColor: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
   };
   mockEvents.push(newEvent);
   return newEvent;

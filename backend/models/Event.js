@@ -48,10 +48,31 @@ const EventSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    bannerColor: {
-      type: String,
-      default: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+    endDate: {
+      type: String, // stored as YYYY-MM-DD
+      required: true,
     },
+    endTime: {
+      type: String, // stored as HH:MM
+      required: true,
+    },
+    deadlineDate: {
+      type: String, // stored as YYYY-MM-DD
+      required: true,
+    },
+    deadlineTime: {
+      type: String, // stored as HH:MM
+      required: true,
+    },
+    attendanceCode: {
+      type: String, // generated on create
+    },
+    resources: [
+      {
+        title: { type: String, required: true },
+        url: { type: String, required: true },
+      }
+    ],
     tags: [String],
     isPaid: {
       type: Boolean,

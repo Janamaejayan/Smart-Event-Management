@@ -19,6 +19,15 @@ router.post('/', protect, requireRole('student'), async (req, res, next) => {
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
+
+    // Check registration deadline
+    if (event.deadlineDate && event.deadlineTime) {
+      const deadline = new Date(`${event.deadlineDate}T${event.deadlineTime}`);
+      if (new Date() > deadline) {
+        return res.status(400).json({ success: false, message: 'Registration deadline has passed' });
+      }
+    }
+
     if (event.registered >= event.capacity) {
       return res.status(400).json({ success: false, message: 'Event is fully booked' });
     }
@@ -41,7 +50,7 @@ router.post('/', protect, requireRole('student'), async (req, res, next) => {
       studentId: req.user._id,
     });
 
-    const populated = await registration.populate('eventId', 'title date time venue bannerColor');
+    const populated = await registration.populate('eventId', 'title date time venue');
 
     res.status(201).json({ success: true, data: populated });
   } catch (err) {
@@ -60,7 +69,21 @@ router.get('/my', protect, requireRole('student'), async (req, res, next) => {
       .populate('eventId')
       .sort({ createdAt: -1 });
 
-    res.json({ success: true, data: registrations });
+    const attendanceRecords = await Attendance.find({ studentId: req.user._id });
+    const attMap = {};
+    attendanceRecords.forEach(a => {
+      attMap[a.eventId.toString()] = a.present;
+    });
+
+    const data = registrations.map(r => {
+      const obj = r.toObject();
+      if (obj.eventId && obj.eventId._id) {
+        obj.isPresent = attMap[obj.eventId._id.toString()] || false;
+      }
+      return obj;
+    });
+
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }
@@ -92,6 +115,29 @@ router.get(
     }
   }
 );
+
+// ─── GET /api/registrations/:id  (student – get single registration) ─────────
+router.get('/:id', protect, requireRole('student'), async (req, res, next) => {
+  try {
+    const reg = await Registration.findOne({
+      _id: req.params.id,
+      studentId: req.user._id,
+    }).populate('eventId');
+    
+    if (!reg) {
+      return res.status(404).json({ success: false, message: 'Registration not found' });
+    }
+    
+    const attendance = await Attendance.findOne({ registrationId: reg._id });
+    
+    res.json({ 
+      success: true, 
+      data: { ...reg.toObject(), isPresent: attendance?.present || false } 
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // ─── DELETE /api/registrations/:id  (student – cancel their registration) ────
 router.delete('/:id', protect, requireRole('student'), async (req, res, next) => {

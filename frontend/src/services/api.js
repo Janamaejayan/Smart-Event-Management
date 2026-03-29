@@ -58,6 +58,7 @@ export const deleteEvent      = (id)        => del(`/events/${id}`);
 export const registerForEvent    = (eventId, formData) =>
   post('/registrations', { eventId, formData });
 export const getMyRegistrations  = ()           => get('/registrations/my');
+export const getRegistrationById = (id)         => get(`/registrations/${id}`);
 export const getEventRegistrations = (eventId)  => get(`/registrations/event/${eventId}`);
 export const cancelRegistration  = (id)         => del(`/registrations/${id}`);
 
@@ -65,3 +66,14 @@ export const cancelRegistration  = (id)         => del(`/registrations/${id}`);
 export const getEventAttendance  = (eventId)          => get(`/attendance/event/${eventId}`);
 export const markAttendance      = (id, present)       => put(`/attendance/${id}`, { present });
 export const checkinByQR         = (qrCode, eventId)  => post('/attendance/checkin', { qrCode, eventId });
+export const selfCheckin         = (eventId, code)    => post('/attendance/self-checkin', { eventId, code });
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+export const getOrgAnalyticsOverview = ()    => get('/analytics/overview');
+export const getEventAnalytics       = (id) => get(`/analytics/event/${id}`);
+
+// ─── Feedback ────────────────────────────────────────────────────────────────
+export const submitFeedback      = (eventId, rating, comment, isAnonymous) => post('/feedback', { eventId, rating, comment, isAnonymous });
+export const getMyFeedback       = (eventId) => get(`/feedback/my/${eventId}`);
+export const getEventFeedback    = (eventId) => get(`/feedback/event/${eventId}`);
+export const getEventRatingSummary = (eventId) => get(`/feedback/event/${eventId}/summary`);

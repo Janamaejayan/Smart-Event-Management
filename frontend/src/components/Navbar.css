@@ -169,12 +169,30 @@
   transition: all var(--transition);
 }
 
-.mobile-link:hover { background: rgba(255,255,255,0.07); color: var(--text-primary); }
-.mobile-link.active { color: var(--accent-light); background: rgba(139, 92, 246, 0.12); }
+.mobile-link:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+}
+
+.mobile-link.active {
+  color: var(--accent-light);
+  background: rgba(139, 92, 246, 0.12);
+}
 
 @media (max-width: 768px) {
-  .navbar-links { display: none; }
-  .hamburger { display: flex; }
-  .user-name { display: none; }
-  .hide-mobile { display: none; }
+  .navbar-links {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
 }

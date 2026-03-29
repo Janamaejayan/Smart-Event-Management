@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import { getMyOrgEvents, deleteEvent } from '../../services/api';
-import { PlusCircle, Trash2, Users, CalendarDays, Pencil } from 'lucide-react';
+import { PlusCircle, Trash2, Users, CalendarDays, Pencil, BarChart2, MessageSquare } from 'lucide-react';
 import './ManageEventsPage.css';
 
 export default function ManageEventsPage() {
@@ -62,82 +62,111 @@ export default function ManageEventsPage() {
           <p>Create your first event to get started.</p>
         </div>
       ) : (
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Venue</th>
-                <th>Registrations</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((event) => {
-                const fillPct = Math.round((event.registered / event.capacity) * 100);
-                return (
-                  <tr key={event.id}>
-                    <td>
-                      <div className="event-name-cell">
-                        <div className="event-color-dot" style={{ background: event.bannerColor }} />
-                        <div>
-                          <strong>{event.title}</strong>
-                          <div className="event-tags-inline">
-                            {event.tags?.map((t) => <span key={t} className="badge badge-muted">{t}</span>)}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{formatDate(event.date)}</td>
-                    <td>{event.venue}</td>
-                    <td>
-                      <div>
-                        <div className="fill-label">{event.registered}/{event.capacity}</div>
-                        <div className="mini-bar">
-                          <div
-                            className={`mini-fill ${fillPct >= 100 ? 'full' : fillPct > 75 ? 'warn' : ''}`}
-                            style={{ width: `${Math.min(fillPct, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      {event.isPaid
-                        ? <span className="badge badge-warning">₹{event.price}</span>
-                        : <span className="badge badge-success">Free</span>}
-                    </td>
-                    <td>
-                      <span className={`badge ${event.status === 'published' ? 'badge-success' : 'badge-muted'}`}>
-                        {event.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex gap-1">
-                        <Link
-                          to={`/organizer/event/${event.id}/attendees`}
-                          className="btn btn-secondary btn-sm"
-                          title="Attendance Sheet"
-                        >
-                          <Users size={14} />
-                        </Link>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(event.id, event.title)}
-                          disabled={deletingId === event.id}
-                          title="Delete Event"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="events-manage-grid">
+          {events.map((event) => {
+            const fillPct = Math.round((event.registered / event.capacity) * 100);
+            
+            const now = new Date();
+            let isFinished = false;
+            let isClosed = false;
+
+            if (event.endDate && event.endTime) {
+              if (now > new Date(`${event.endDate}T${event.endTime}`)) isFinished = true;
+            }
+            if (event.deadlineDate && event.deadlineTime) {
+              if (now > new Date(`${event.deadlineDate}T${event.deadlineTime}`)) isClosed = true;
+            }
+
+            return (
+              <div key={event.id} className="manage-card">
+                {/* Top Strip */}
+                <div className="mc-strip" style={{ background: isFinished ? 'var(--text-muted)' : 'var(--accent)' }} />
+
+                {/* Header: Title and Status */}
+                <div className="mc-header">
+                  <div>
+                    <h3 className="mc-title">{event.title}</h3>
+                    <div className="mc-tags">
+                      {isFinished ? (
+                        <span className="badge badge-muted" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', background: 'rgba(255,255,255,0.05)' }}>Finished</span>
+                      ) : isClosed ? (
+                        <span className="badge badge-warning" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>Closed</span>
+                      ) : null}
+                      {event.tags?.map((t) => (
+                        <span key={t} className="badge badge-muted" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <span className={`badge mc-status ${event.status === 'published' ? 'badge-success' : 'badge-muted'}`}>
+                    {event.status}
+                  </span>
+                </div>
+
+                {/* Body: Info and Capacity */}
+                <div className="mc-body">
+                  <div className="mc-info-row">
+                    <CalendarDays size={14} /> <span>{formatDate(event.date)}</span>
+                  </div>
+                  <div className="mc-info-row">
+                    <Users size={14} /> <span>{event.venue}</span>
+                  </div>
+
+                  {/* Capacity Bar */}
+                  <div className="mc-capacity">
+                    <div className="mc-cap-header">
+                      <span className="label">Registrations</span>
+                      <span className="value">{event.registered} / {event.capacity}</span>
+                    </div>
+                    <div className="mc-bar-bg">
+                      <div
+                        className={`mc-bar-fill ${fillPct >= 100 ? 'full' : fillPct > 75 ? 'warn' : ''}`}
+                        style={{ width: `${Math.min(fillPct, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer: Price Badge and Action Icons */}
+                <div className="mc-footer">
+                  <div className={`m-type-badge ${event.isPaid ? 'paid' : 'free'}`}>
+                    {event.isPaid ? `₹${event.price}` : 'Free'}
+                  </div>
+
+                  <div className="mc-actions">
+                    <Link
+                      to={`/organizer/event/${event._id || event.id}/attendees`}
+                      className="mc-action-btn"
+                      title="Attendance Sheet"
+                    >
+                      <Users size={15} />
+                    </Link>
+                    <Link
+                      to={`/organizer/event/${event._id || event.id}/analytics`}
+                      className="mc-action-btn"
+                      title="Analytics"
+                    >
+                      <BarChart2 size={15} />
+                    </Link>
+                    <Link
+                      to={`/organizer/event/${event._id || event.id}/feedback`}
+                      className="mc-action-btn"
+                      title="Feedback & Reviews"
+                    >
+                      <MessageSquare size={15} />
+                    </Link>
+                    <button
+                      className="mc-action-btn delete"
+                      onClick={() => handleDelete(event._id || event.id, event.title)}
+                      disabled={deletingId === (event._id || event.id)}
+                      title="Delete Event"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

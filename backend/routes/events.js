@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { body, query, validationResult } = require('express-validator');
 const Event = require('../models/Event');
+const Registration = require('../models/Registration');
+const Attendance = require('../models/Attendance');
+const Feedback = require('../models/Feedback');
 const { protect, requireRole } = require('../middleware/authMiddleware');
 
 // ─── GET /api/events  (public – list published events) ───────────────────────
@@ -67,9 +70,12 @@ router.post(
         return res.status(400).json({ success: false, message: errors.array()[0].msg });
       }
 
+      const attendanceCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
       const event = await Event.create({
         ...req.body,
         organizerId: req.user._id,
+        attendanceCode
       });
 
       res.status(201).json({ success: true, data: event });
@@ -116,7 +122,13 @@ router.delete('/:id', protect, requireRole('organizer'), async (req, res, next) 
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found or not yours' });
     }
-    res.json({ success: true, message: 'Event deleted' });
+
+    // Cascading delete
+    await Registration.deleteMany({ eventId: req.params.id });
+    await Attendance.deleteMany({ eventId: req.params.id });
+    await Feedback.deleteMany({ eventId: req.params.id });
+
+    res.json({ success: true, message: 'Event and related records deleted' });
   } catch (err) {
     next(err);
   }

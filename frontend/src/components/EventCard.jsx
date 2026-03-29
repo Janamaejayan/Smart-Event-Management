@@ -1,66 +1,78 @@
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Users, IndianRupee } from 'lucide-react';
+import { Calendar, MapPin, Users } from 'lucide-react';
+import './EventCard.css';
 
-const GRADIENT_FALLBACKS = [
-  'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-  'linear-gradient(135deg, #10b981, #3b82f6)',
-  'linear-gradient(135deg, #f59e0b, #ef4444)',
-  'linear-gradient(135deg, #ec4899, #8b5cf6)',
-];
+// GRADIENTS removed
 
 export default function EventCard({ event, linkPrefix = '/student' }) {
   const spotsLeft = event.capacity - event.registered;
   const isFull = spotsLeft <= 0;
   const fillPct = Math.round((event.registered / event.capacity) * 100);
-  const bg = event.bannerColor || GRADIENT_FALLBACKS[0];
+  
+  const now = new Date();
+  let isFinished = false;
+  let isClosed = false;
+
+  if (event.endDate && event.endTime) {
+    if (now > new Date(`${event.endDate}T${event.endTime}`)) isFinished = true;
+  }
+  if (event.deadlineDate && event.deadlineTime) {
+    if (now > new Date(`${event.deadlineDate}T${event.deadlineTime}`)) isClosed = true;
+  }
+
+  const bg = isFinished ? 'var(--text-muted)' : 'var(--accent)';
 
   const formatDate = (d) =>
     new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
-    <Link to={`${linkPrefix}/event/${event.id}`} className="event-card-link">
-      <div className="event-card">
-        {/* Banner */}
-        <div className="event-banner" style={{ background: bg }}>
-          <div className="event-banner-overlay">
-            <div className="event-tags">
-              {event.tags?.map((tag) => (
-                <span key={tag} className="event-tag">{tag}</span>
+    <Link to={`${linkPrefix}/event/${event.id || event._id}`} className="event-card-link">
+      <div className="ec-card">
+        {/* Top Strip */}
+        <div className="ec-strip" style={{ background: bg }} />
+
+        {/* Header: Title, Tags, Price */}
+        <div className="ec-header">
+          <div>
+            <h3 className="ec-title">{event.title}</h3>
+            <div className="ec-tags">
+              {isFinished ? (
+                <span className="badge badge-muted" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', background: 'rgba(255,255,255,0.05)' }}>Finished</span>
+              ) : isClosed ? (
+                <span className="badge badge-warning" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>Registration Closed</span>
+              ) : null}
+              {event.tags?.map((t) => (
+                <span key={t} className="badge badge-muted" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>{t}</span>
               ))}
             </div>
-            {event.isPaid ? (
-              <span className="price-badge">
-                <IndianRupee size={13} />₹{event.price}
-              </span>
-            ) : (
-              <span className="price-badge free">Free</span>
-            )}
           </div>
+          <span className={`ec-price-badge ${event.isPaid ? 'paid' : 'free'}`}>
+            {event.isPaid ? `₹${event.price}` : 'Free'}
+          </span>
         </div>
 
-        {/* Body */}
-        <div className="event-card-body">
-          <h3 className="event-title">{event.title}</h3>
-          <p className="event-desc">{event.description}</p>
-
-          <div className="event-meta">
-            <span><Calendar size={14} />{formatDate(event.date)}</span>
-            <span><MapPin size={14} />{event.venue}</span>
+        {/* Body: Desc, Info, Capacity */}
+        <div className="ec-body">
+          <p className="ec-desc">{event.description}</p>
+          <div className="ec-info-row">
+            <Calendar size={14} /> <span>{formatDate(event.date)}</span>
+          </div>
+          <div className="ec-info-row">
+            <MapPin size={14} /> <span>{event.venue}</span>
           </div>
 
-          {/* Capacity bar */}
-          <div className="capacity-bar-wrapper">
-            <div className="capacity-labels">
-              <span className="flex gap-1" style={{ alignItems: 'center' }}>
-                <Users size={13} />
-                {isFull ? 'Fully booked' : `${spotsLeft} spots left`}
+          {/* Capacity Bar */}
+          <div className="ec-capacity">
+            <div className="ec-cap-header">
+              <span className="label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Users size={13} /> {isFull ? 'Fully booked' : `${spotsLeft} spots left`}
               </span>
-              <span>{fillPct}%</span>
+              <span className="value">{fillPct}%</span>
             </div>
-            <div className="capacity-bar">
+            <div className="ec-bar-bg">
               <div
-                className={`capacity-fill ${isFull ? 'full' : fillPct > 75 ? 'warn' : ''}`}
-                style={{ width: `${fillPct}%` }}
+                className={`ec-bar-fill ${isFull ? 'full' : fillPct > 75 ? 'warn' : ''}`}
+                style={{ width: `${Math.min(fillPct, 100)}%` }}
               />
             </div>
           </div>
