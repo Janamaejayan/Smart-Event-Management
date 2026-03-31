@@ -23,6 +23,12 @@ const RegistrationSchema = new mongoose.Schema(
       enum: ['free', 'pending', 'paid'],
       default: 'free',
     },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
     status: {
       type: String,
       enum: ['confirmed', 'cancelled', 'waitlisted'],

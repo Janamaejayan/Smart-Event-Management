@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
-import { createEvent } from '../../services/api';
+import { createEvent, uploadFile } from '../../services/api';
 import {
   Plus, Trash2, ChevronRight, ChevronLeft, Check,
-  Type, List, CheckSquare, IndianRupee, Eye
+  Type, List, CheckSquare, IndianRupee, Eye, UploadCloud
 } from 'lucide-react';
 import './CreateEventPage.css';
 
@@ -32,7 +32,7 @@ export default function CreateEventPage() {
     venue: '', capacity: 100, tags: '',
     isPaid: false,
     price: '',
-    resources: [], // Array of { title: '', url: '' }
+    resources: [], // Array of { title, url, file, uploading }
   });
 
   const [fields, setFields] = useState([]);
@@ -169,7 +169,7 @@ export default function CreateEventPage() {
 
   // ── Step 3: Settings ──
   const addResource = () => {
-    setInfo((prev) => ({ ...prev, resources: [...prev.resources, { title: '', url: '' }] }));
+    setInfo((prev) => ({ ...prev, resources: [...prev.resources, { title: '', url: '', file: null, uploading: false }] }));
   };
 
   const removeResource = (index) => {
@@ -182,6 +182,24 @@ export default function CreateEventPage() {
       updated[index][field] = value;
       return { ...prev, resources: updated };
     });
+  };
+
+  const handleFileUpload = async (index, file) => {
+    if (!file) return;
+    
+    updateResource(index, 'file', file.name);
+    updateResource(index, 'uploading', true);
+    
+    try {
+      const res = await uploadFile(file);
+      updateResource(index, 'url', res.data.url);
+      addToast('File uploaded successfully to Cloudinary', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+      updateResource(index, 'file', null);
+    } finally {
+      updateResource(index, 'uploading', false);
+    }
   };
 
   const renderSettingsStep = () => (
@@ -221,10 +239,16 @@ export default function CreateEventPage() {
           <button type="button" className="btn btn-secondary btn-sm" onClick={addResource}><Plus size={14} /> Add</button>
         </div>
         {info.resources.map((r, i) => (
-          <div key={i} className="card mt-1" style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem' }}>
-            <input className="form-input" placeholder="Title" value={r.title} onChange={(e) => updateResource(i, 'title', e.target.value)} />
-            <input className="form-input" placeholder="URL" value={r.url} onChange={(e) => updateResource(i, 'url', e.target.value)} />
-            <button type="button" className="btn btn-danger btn-sm" onClick={() => removeResource(i)}><Trash2 size={14} /></button>
+          <div key={i} className="card mt-1" style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem', alignItems: 'center' }}>
+            <input className="form-input" placeholder="Resource Title" value={r.title} onChange={(e) => updateResource(i, 'title', e.target.value)} style={{ flex: 1 }} />
+            {r.uploading ? (
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Uploading...</span>
+            ) : r.url ? (
+              <span style={{ fontSize: '0.8rem', color: 'var(--success)' }}>Uploaded!</span>
+            ) : (
+              <input type="file" onChange={(e) => handleFileUpload(i, e.target.files[0])} style={{ width: '150px', fontSize: '0.8rem' }} />
+            )}
+            <button type="button" className="btn btn-danger btn-sm" onClick={() => removeResource(i)} disabled={r.uploading}><Trash2 size={14} /></button>
           </div>
         ))}
       </div>
@@ -297,7 +321,7 @@ export default function CreateEventPage() {
         customFields: fields,
         capacity: Number(info.capacity),
         price: Number(info.price),
-        resources: info.resources.filter(r => r.title.trim() && r.url.trim()),
+        resources: info.resources.filter(r => r.title.trim() && r.url.trim()).map(r => ({ title: r.title, url: r.url })),
       };
       await createEvent(eventData);
       addToast('Event created successfully! 🎉', 'success');

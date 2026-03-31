@@ -3,6 +3,7 @@ const router = express.Router();
 const Registration = require('../models/Registration');
 const Attendance = require('../models/Attendance');
 const Event = require('../models/Event');
+const razorpayInstance = require('../utils/razorpay');
 const { protect, requireRole } = require('../middleware/authMiddleware');
 
 // ─── POST /api/registrations  (student – register for an event) ──────────────
@@ -38,6 +39,7 @@ router.post('/', protect, requireRole('student'), async (req, res, next) => {
       studentId: req.user._id,
       formData: formData || {},
       paymentStatus: event.isPaid ? 'pending' : 'free',
+      status: event.isPaid ? 'waitlisted' : 'confirmed',
     });
 
     // Bump registered count
@@ -49,6 +51,33 @@ router.post('/', protect, requireRole('student'), async (req, res, next) => {
       registrationId: registration._id,
       studentId: req.user._id,
     });
+
+    if (event.isPaid && razorpayInstance) {
+      try {
+        const amount = Math.round(event.price * 100); // Amount in paise
+        const options = {
+          amount: amount,
+          currency: "INR",
+          receipt: registration._id.toString(),
+        };
+        const order = await razorpayInstance.orders.create(options);
+        
+        // Update registration with order ID
+        registration.razorpayOrderId = order.id;
+        await registration.save();
+        
+        return res.status(201).json({
+          success: true,
+          requirePayment: true,
+          order,
+          registrationId: registration._id,
+          key: process.env.RAZORPAY_KEY_ID // For frontend use
+        });
+      } catch (err) {
+        console.error("Razorpay error:", err);
+        // Fallback if Razorpay fails
+      }
+    }
 
     const populated = await registration.populate('eventId', 'title date time venue');
 

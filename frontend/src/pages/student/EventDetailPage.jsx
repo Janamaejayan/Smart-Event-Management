@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
-import { getEventById, getMyRegistrations, registerForEvent } from '../../services/api';
+import { getEventById, getMyRegistrations, registerForEvent, verifyPayment } from '../../services/api';
 import {
   Calendar, MapPin, Users, IndianRupee, ArrowLeft,
   CheckCircle, CreditCard, Loader2,
@@ -46,6 +46,20 @@ export default function EventDetailPage() {
     return errs;
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
@@ -54,13 +68,61 @@ export default function EventDetailPage() {
 
     setSubmitting(true);
     try {
-      await registerForEvent(event._id || event.id, formValues);
-      setSuccess(true);
-      setAlreadyRegistered(true);
-      addToast('Successfully registered! 🎉', 'success');
+      const res = await registerForEvent(event._id || event.id, formValues);
+      
+      if (res.requirePayment) {
+        const isLoaded = await loadRazorpayScript();
+        if (!isLoaded) {
+          addToast('Failed to load payment gateway', 'error');
+          setSubmitting(false);
+          return;
+        }
+
+        const options = {
+          key: res.key,
+          amount: res.order.amount,
+          currency: res.order.currency,
+          name: 'EventSphere',
+          description: `Registration for ${event.title}`,
+          order_id: res.order.id,
+          handler: async function (response) {
+            try {
+              setSubmitting(true);
+              await verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                registrationId: res.registrationId
+              });
+              setSuccess(true);
+              setAlreadyRegistered(true);
+              addToast('Payment successful! 🎉', 'success');
+            } catch (err) {
+              addToast(err.message || 'Payment verification failed', 'error');
+            } finally {
+              setSubmitting(false);
+            }
+          },
+          prefill: {
+             name: user?.name,
+             email: user?.email
+          },
+          theme: { color: '#6366f1' }
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+            addToast('Payment Failed: ' + response.error.description, 'error');
+            setSubmitting(false);
+        });
+        rzp.open();
+      } else {
+        setSuccess(true);
+        setAlreadyRegistered(true);
+        addToast('Successfully registered! 🎉', 'success');
+        setSubmitting(false);
+      }
     } catch (err) {
       addToast(err.message, 'error');
-    } finally {
       setSubmitting(false);
     }
   };
@@ -253,7 +315,7 @@ export default function EventDetailPage() {
                     <CreditCard size={16} />
                     <div>
                       <strong>Paid event — ₹{event.price}</strong><br />
-                      <span style={{ fontSize: '0.8rem' }}>Payment gateway integration coming soon. Registration confirmed automatically for now.</span>
+                      <span style={{ fontSize: '0.8rem' }}>A Razorpay payment window will appear when you click register.</span>
                     </div>
                   </div>
                 )}

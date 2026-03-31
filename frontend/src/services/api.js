@@ -77,3 +77,27 @@ export const submitFeedback      = (eventId, rating, comment, isAnonymous) => po
 export const getMyFeedback       = (eventId) => get(`/feedback/my/${eventId}`);
 export const getEventFeedback    = (eventId) => get(`/feedback/event/${eventId}`);
 export const getEventRatingSummary = (eventId) => get(`/feedback/event/${eventId}/summary`);
+
+// ─── Cloudinary Upload ─────────────────────────────────────────────────────────
+export const uploadFile = async (file) => {
+  const token = localStorage.getItem('sem_token');
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${BASE_URL}/upload`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData, // do not set Content-Type, fetch will set it with the boundary
+  });
+  
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || `Upload failed (${res.status})`);
+  }
+  return data;
+};
+
+// ─── Razorpay Verification ─────────────────────────────────────────────────────
+export const verifyPayment = (paymentData) => post('/payments/verify', paymentData);
